@@ -4,6 +4,7 @@ const app = express()
 const mongoose = require("mongoose")
 const dotenv = require("dotenv")
 dotenv.config()
+const customersRouter = require("./route/customersRoutes")
 
 // connect server to database
 mongoose.connect(process.env.MONGO_URI)
@@ -13,6 +14,11 @@ mongoose.connect(process.env.MONGO_URI)
 .catch((err)=>{
     console.log(err)
 })
+
+
+// middlewares
+app.use(express.json())
+app.use("/api/customers", customersRouter)
 
 
 // create server
