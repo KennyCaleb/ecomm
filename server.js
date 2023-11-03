@@ -5,6 +5,9 @@ const mongoose = require("mongoose")
 const dotenv = require("dotenv")
 dotenv.config()
 const customersRouter = require("./route/customersRoutes")
+const staffsRouter = require("./route/staffsRoutes");
+const productsRouter = require("./route/productsRoutes");
+const cartsRouter = require("./route/cartsRoutes");
 
 // connect server to database
 mongoose.connect(process.env.MONGO_URI)
@@ -19,6 +22,9 @@ mongoose.connect(process.env.MONGO_URI)
 // middlewares
 app.use(express.json())
 app.use("/api/customers", customersRouter)
+app.use("/api/staffs", staffsRouter);
+app.use("/api/products", productsRouter);
+app.use("/api/carts", cartsRouter);
 
 
 // create server

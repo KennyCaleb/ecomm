@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler")
-const jwt = require("jsonwebtoken")
 const Customers = require("../model/customersModel")
 const bcrypt = require("bcryptjs")
+const {generateToken} = require("../utils/token")
 
 
 // @deregister customer
@@ -72,23 +72,57 @@ const loginCustomer = asyncHandler(async (req, res) => {
 });
 
 // get customers
-const getCustomers = asyncHandler(async (req, res) => {});
+const getCustomers = asyncHandler(async (req, res) => {
+
+    const role = req.user.role
+    if (!role || role != "admin") {
+      return res.status(400).send({ msg: "not authorised" });
+    }
+
+    const customers = await Customers.find().select("-password")
+    if(!customers){
+        return res.status(500).send({ msg: "internal server error, customers not deleivered"});
+    }
+
+    return res.status(200).send({ msg: "customers", customers});
+});
 
 // get customer
-const getCustomer = asyncHandler(async (req, res) => {});
+const getCustomer = asyncHandler(async (req, res) => {
+    
+    const getCustomer = await Customers.findById(req.user._id)
+    res.send(getCustomer)
+
+});
 
 // update customer
-const updateCustomer = asyncHandler(async (req, res) => {});
+const updateCustomer = asyncHandler(async (req, res) => {
+    
+    const updatedCustomer = await Customers.findOneAndUpdate({_id:req.user._id}, req.body, {new:true, runValidators:true})
+    if(!updatedCustomer){
+        return res.status(500).send({msg:"internal server error, cannot update customer"})
+    }
+
+    return res.status(200).send({msg:"customer updated", updatedCustomer})
+
+});
 
 // delete customer
-const deleteCustomer = asyncHandler(async (req, res) => {});
+const deleteCustomer = asyncHandler(async (req, res) => {
+    const role = req.user.role
+    if(!role || role!="admin"){
+        return res.status(400).send({msg:"not authorised"})
+    }
+
+    const deletedUser = await Customers.findOneAndDelete(req.user._id)
+    if(!deletedUser){
+        return res.status(500).send({ msg: "internal server error, user not deleted"});
+    }
+
+    return res.status(200).send({ msg: "deleted", deletedUser });
+});
 
 
-const generateToken=(id)=>{
-    const accessToken = jwt.sign({id}, process.env.ACCESS_TOKEN_SECRET, {expiresIn:"30d"})
-
-    return {accessToken:accessToken}
-}
 
 
 module.exports = {registerCustomer, loginCustomer, getCustomers, getCustomer, updateCustomer, deleteCustomer}
